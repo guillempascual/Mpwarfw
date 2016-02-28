@@ -2,10 +2,7 @@
 namespace Mpwarfw\Component\Bootstrap;
 
 use Mpwarfw\Component\Request\Request;
-use Mpwarfw\Component\Routing\RouteCollection;
-use Mpwarfw\Component\Routing\RouteLoader;
 use Mpwarfw\Component\Routing\Router;
-
 
 class Bootstrap
 {
