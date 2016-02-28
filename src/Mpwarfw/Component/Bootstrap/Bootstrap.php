@@ -13,14 +13,8 @@ class Bootstrap
 
     public function __construct($environment)
     {
+        date_default_timezone_set('Europe/Paris');
         $this->environment = $environment;
-    }
-
-    public function __invoke($queryString)
-    {
-        $router = new Router($queryString);
-
-
     }
 
     public function execute(Request $request){

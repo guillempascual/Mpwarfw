@@ -8,33 +8,31 @@ class SmartyTemplate implements Template
 {
 
     private $smarty;
+    private $view_path;
+
+    public function __construct($view_path)
+    {
+        $this->view_path = $view_path;
+    }
 
     public function createView($template, $params = null ){
 
         $this->smarty = new Smarty;
-        //$this->smarty->force_compile = true;
-        $this->smarty->debugging = true;
+        $this->smarty->debugging = false;
         $this->smarty->caching = true;
         $this->smarty->cache_lifetime = 120;
-        $this->smarty->template_dir = self::VIEW_PATH;
-        $this->smarty->config_dir = self::APP_PATH."/conf";
-        $this->smarty->compile_dir = self::APP_PATH."/cache";
+        $this->smarty->template_dir = $this->view_path;
+        $this->smarty->config_dir = $this->view_path."/conf/";
+        $this->smarty->compile_dir = $this->view_path."/cache/";
 
-        $template = $template.'.twig';
-        if(!file_exists($template)){
+        $template = $template.'.tpl';
+        if(!file_exists($this->view_path."/".$template)){
             throw new \Exception('El template ' . $template . ' no existe');
         }
 
-        if(isset($params)){
-            foreach($params as $key => $value){
-                $$key = $value;
-            }
-        }
+        $this->smarty->assign($params);
 
-        $content = '';
-        include __DIR__ . '/view.php';
-
-        return $content;
+        return $this->smarty->fetch($template);
     }
 
 }
