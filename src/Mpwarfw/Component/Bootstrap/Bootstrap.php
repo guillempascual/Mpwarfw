@@ -2,6 +2,9 @@
 namespace Mpwarfw\Component\Bootstrap;
 
 use Mpwarfw\Component\Container\Container;
+use Mpwarfw\Component\Container\ContainerBuilder;
+use Mpwarfw\Component\Container\ContainerLoader;
+use Mpwarfw\Component\Container\YamlFileLoader;
 use Mpwarfw\Component\Database\PDOConnection;
 use Mpwarfw\Component\Request\Request;
 use Mpwarfw\Component\Response\ResponseHTTP;
@@ -22,6 +25,10 @@ class Bootstrap
 
     public function execute(Request $request){
 
+        $services = ContainerLoader::loadContainer('../app/services.yml');
+        var_dump($services);
+
+
         $container = new Container();
         $container['PDOConnection'] = new PDOConnection(HOST,DBNAME,USER,PASSWORD);
         $container['TwigTemplate'] = new TwigTemplate(VIEW_PATH);
@@ -29,6 +36,12 @@ class Bootstrap
         $container['ResponseHTTP'] = new ResponseHTTP();
         $container['ResponseJSON'] = new ResponseJSON();
         $container['Router'] = new Router();
+
+        $builder = new ContainerBuilder($container);
+        $loader = new YamlFileLoader($builder);
+        $loader->load('../app/services.yml');
+
+
 
         $router = $container['Router'];
         $route = $router->getController($request);
