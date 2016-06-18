@@ -12,12 +12,12 @@ class SmartyTemplate implements Template
 
     public function __construct($view_path)
     {
+        $this->smarty = new Smarty();
         $this->view_path = $view_path;
     }
 
-    public function createView($template, $params = null ){
+    public function render($template, $params = null ){
 
-        $this->smarty = new Smarty;
         $this->smarty->debugging = false;
         $this->smarty->caching = true;
         $this->smarty->cache_lifetime = 120;

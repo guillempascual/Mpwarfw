@@ -1,128 +1,117 @@
 <?php
 
-// Shortened version of Pimple 1.0.1
-/*
- *
- * Copyright (c) 2009 Fabien Potencier
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 namespace Mpwarfw\Component\Container;
-
-use ArrayAccess;
-use InvalidArgumentException;
-
-class Container implements ArrayAccess
+use Mpwarfw\Component\Container\Exception\ServiceNotOpenToPublicException;
+use Mpwarfw\Component\Container\Exception\ServiceNotFoundException;
+use ReflectionClass;
+use Symfony\Component\Yaml\Parser;
+class Container
 {
+    private $container;
+    private $service_store;
+    private $service_settings;
 
-    protected $values = array();
-
-    /**
-     * Instantiate the container.
-     *
-     * Objects and parameters can be passed as argument to the constructor.
-     *
-     * @param array $values The parameters or objects.
-     */
-
-    public function __construct(array $values = array())
+    public function __construct(
+        Parser $yml_parser,
+        $path_to_services_config_file,
+        $current_environment = 'DEV'
+    )
     {
-        $this->values = $values;
-    }
-    /**
-     * Sets a parameter or an object.
-     *
-     * Objects must be defined as Closures.
-     *
-     * Allowing any PHP callable leads to difficult to debug problems
-     * as function names (strings) are callable (creating a function with
-     * the same a name as an existing parameter would break your container).
-     *
-     * @param string $id    The unique identifier for the parameter or object
-     * @param mixed  $value The value of the parameter or a closure to defined an object
-     */
-    public function offsetSet($id, $value)
-    {
-        $this->values[$id] = $value;
-    }
-    /**
-     * Gets a parameter or an object.
-     *
-     * @param string $id The unique identifier for the parameter or object
-     *
-     * @return mixed The value of the parameter or an object
-     *
-     * @throws InvalidArgumentException if the identifier is not defined
-     */
-    public function offsetGet($id)
-    {
-        if (!array_key_exists($id, $this->values)) {
-            throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
-        }
-        $isFactory = is_object($this->values[$id]) && method_exists($this->values[$id], '__invoke');
-        return $isFactory ? $this->values[$id]($this) : $this->values[$id];
-    }
-    /**
-     * Checks if a parameter or an object is set.
-     *
-     * @param string $id The unique identifier for the parameter or object
-     *
-     * @return Boolean
-     */
-    public function offsetExists($id)
-    {
-        return array_key_exists($id, $this->values);
-    }
-    /**
-     * Unsets a parameter or an object.
-     *
-     * @param string $id The unique identifier for the parameter or object
-     */
-    public function offsetUnset($id)
-    {
-        unset($this->values[$id]);
-    }
-    /**
-     * Returns a closure that stores the result of the given service definition
-     * for uniqueness in the scope of this instance of Pimple.
-     *
-     * @param callable $callable A service definition to wrap for uniqueness
-     *
-     * @return Closure The wrapped closure
-     */
-    public static function share($callable)
-    {
-        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
-            throw new InvalidArgumentException('Service definition is not a Closure or invokable object.');
-        }
-        return function ($c) use ($callable) {
-            static $object;
-            if (null === $object) {
-                $object = $callable($c);
+        $this->container     = [];
+        $this->service_store = [];
+        $this->service_settings = [];
+        $production_service_definitions = $yml_parser->parse(file_get_contents($path_to_services_config_file . '/services.yml'));
+        foreach ($production_service_definitions as $service => $content)
+        {
+            if (array_key_exists($service, $this->container))
+            {
+                continue;
             }
-            return $object;
-        };
+            $this->container[ $service ] = $content;
+            $this->service_settings[$service]['public'] = $content['public'];
+            if(isset($content['tags']))
+            {
+                foreach($content['tags'] as $tag)
+                {
+                    $this->service_settings[$service]['tags'][] = $tag;
+                }
+            }
+        }
+        if($current_environment === 'DEV')
+        {
+            $development_service_definitions = $yml_parser->parse(file_get_contents($path_to_services_config_file . '/services_dev.yml'));
+            foreach($development_service_definitions as $service => $content)
+            {
+                if (array_key_exists($service, $this->container))
+                {
+                    continue;
+                }
+                $this->container[ $service ] = $content;
+                $this->service_settings[$service]['public'] = $content['public'];
+                if(isset($content['tags']))
+                {
+                    foreach($content['tags'] as $tag)
+                    {
+                        $this->service_settings[$service]['tags'][] = $tag;
+                    }
+                }
+            }
+        }
     }
 
-    public function keys()
+    public function getService($a_name_of_the_service)
     {
-        return array_keys($this->values);
+        if (!array_key_exists($a_name_of_the_service, $this->container))
+        {
+            throw new ServiceNotFoundException('Service not found: ' . $a_name_of_the_service);
+        }
+        $this->service_store[ $a_name_of_the_service ] = $this->createService($this->container[ $a_name_of_the_service ]
+        );
+        if(!$this->service_settings[$a_name_of_the_service]['public'])
+        {
+            throw new ServiceNotOpenToPublicException('Service not open to public access.');
+        }
+
+        return $this->service_store[ $a_name_of_the_service ];
+    }
+
+    private function createService($service_schema)
+    {
+
+        if (isset( $service_schema['arguments'] ))
+        {
+            $services_arguments = [];
+            foreach ($service_schema['arguments'] as $argument)
+            {
+                $first_character = substr($argument, 0, 1);
+                if ('@' === $first_character)
+                {
+                    $service_to_ask       = str_replace("@", "", $argument);
+                    $services_arguments[] = $this->createService($this->container[ $service_to_ask ]);
+                }
+                else
+                {
+                    $first_character = substr($argument, 0, 1);
+                    if ('[' === $first_character)
+                    {
+                        $all_arguments = str_replace("[", "", $argument);
+                        $all_arguments = str_replace("]", "", $all_arguments);
+                        $all_arguments = str_replace("'", "", $all_arguments);
+                        $all_arguments = str_replace(" ", "", $all_arguments);
+                        $all_arguments = explode(",", $all_arguments);
+                        $argument            = [];
+                        foreach ($all_arguments as $next_argument)
+                        {
+                            $array_with_key_value = explode("=>", $next_argument);
+                            $argument[ $array_with_key_value[0] ] = $array_with_key_value[1];
+                        }
+                    }
+                    $services_arguments[] = $argument;
+                }
+            }
+            $reflector = new ReflectionClass($service_schema['class']);
+            return $reflector->newInstanceArgs($services_arguments);
+        }
+        return new $service_schema['class']();
     }
 }

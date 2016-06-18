@@ -13,15 +13,14 @@ class TwigTemplate implements Template
 
     public function __construct($view_path)
     {
-        $this->view_path = $view_path;
+       $this->view_path = $view_path;
     }
 
-    public function createView($template, $params = null ){
+    public function render($template, $params = null ){
 
         $this->twig_loader     = new Twig_Loader_Filesystem($this->view_path);
         $this->twig       = new Twig_Environment( $this->twig_loader, array() );
-
-        $template = $template.'.twig';
+         $template = $template.'.twig';
         if(!file_exists($this->view_path."/".$template)){
             throw new \Exception('El template ' . $template . ' no existe');
         }

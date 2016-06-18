@@ -2,59 +2,34 @@
 namespace Mpwarfw\Component\Bootstrap;
 
 use Mpwarfw\Component\Container\Container;
-use Mpwarfw\Component\Container\ContainerBuilder;
-use Mpwarfw\Component\Container\ContainerLoader;
-use Mpwarfw\Component\Container\YamlFileLoader;
-use Mpwarfw\Component\Database\PDOConnection;
 use Mpwarfw\Component\Request\Request;
-use Mpwarfw\Component\Response\ResponseHTTP;
-use Mpwarfw\Component\Response\ResponseJSON;
-use Mpwarfw\Component\Routing\Router;
-use Mpwarfw\Component\Template\SmartyTemplate;
-use Mpwarfw\Component\Template\TwigTemplate;
+use Symfony\Component\Yaml\Parser;
 
 class Bootstrap
 {
+    private $parser;
     private $environment;
+    private $pathToServicesFile;
+    private $container;
 
-    public function __construct($environment)
+    public function __construct(Parser $parser, $pathToServicesFile, $environment)
     {
         date_default_timezone_set('Europe/Paris');
+        $this->parser = $parser;
+        $this->pathToServicesFile;
         $this->environment = $environment;
+        $this->container = new Container($parser,$pathToServicesFile,$environment);
+
     }
 
     public function execute(Request $request){
 
-        $services = ContainerLoader::loadContainer('../app/services.yml');
-        var_dump($services);
+        $router = $this->container->getService('router');
+        $route                     = $router->retrieveRoute($request);
+        $controller_to_instantiate = $route->getController();
+        $action_to_execute         = $route->getAction();
+        $current_controller = new $controller_to_instantiate($this->container);
 
-
-        $container = new Container();
-        $container['PDOConnection'] = new PDOConnection(HOST,DBNAME,USER,PASSWORD);
-        $container['TwigTemplate'] = new TwigTemplate(VIEW_PATH);
-        $container['SmartyTemplate'] = new SmartyTemplate(VIEW_PATH);
-        $container['ResponseHTTP'] = new ResponseHTTP();
-        $container['ResponseJSON'] = new ResponseJSON();
-        $container['Router'] = new Router();
-
-        $builder = new ContainerBuilder($container);
-        $loader = new YamlFileLoader($builder);
-        $loader->load('../app/services.yml');
-
-
-
-        $router = $container['Router'];
-        $route = $router->getController($request);
-        $request->setParams($route->params);
-
-        $controller_class = new $route->controller();
-        if(is_subclass_of($controller_class,'DefaultController')){
-            $controller_class->setServicesContainer($container);
-        }
-        $controller_class->setServicesContainer($container);
-
-        $response = call_user_func(array($controller_class, $route->action), $request);
-
-        return $response;
+        return $current_controller->$action_to_execute();
     }
 }
