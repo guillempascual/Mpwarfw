@@ -2,29 +2,21 @@
 
 namespace Mpwarfw\Component\Template;
 
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-
 class TwigTemplate implements Template
 {
-    private $twig_loader;
-    private $twig;
-    private $view_path;
 
-    public function __construct($view_path)
+    private $twig_environment;
+    private $variables_to_use;
+
+    public function __construct($twig_environment)
     {
-       $this->view_path = $view_path;
+        $this->twig_environment = $twig_environment;
+        $this->variables_to_use = [];
     }
 
-    public function render($template, $params = null ){
+    public function render($template_to_render, $params = [])
 
-        $this->twig_loader     = new Twig_Loader_Filesystem($this->view_path);
-        $this->twig       = new Twig_Environment( $this->twig_loader, array() );
-         $template = $template.'.twig';
-        if(!file_exists($this->view_path."/".$template)){
-            throw new \Exception('El template ' . $template . ' no existe');
-        }
-
-        return $this->twig->render($template, $params );
+    {
+        return $this->twig_environment->render($template_to_render, $params);
     }
 }

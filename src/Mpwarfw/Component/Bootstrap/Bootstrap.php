@@ -3,6 +3,7 @@ namespace Mpwarfw\Component\Bootstrap;
 
 use Mpwarfw\Component\Container\Container;
 use Mpwarfw\Component\Request\Request;
+use Mpwarfw\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Yaml\Parser;
 
 class Bootstrap
@@ -25,10 +26,16 @@ class Bootstrap
     public function execute(Request $request){
 
         $router = $this->container->getService('router');
-        $route                     = $router->retrieveRoute($request);
+        try{
+            $route = $router->retrieveRoute($request);
+        }
+        catch (RouteNotFoundException $e){
+            echo $e->getMessage();
+            die;
+        }
+        $params                    = $router->retrieveParams($request);
         $controller_to_instantiate = $route->getController();
         $action_to_execute         = $route->getAction();
-        $params                    = implode(",",$request->getParams());
         $current_controller = new $controller_to_instantiate($this->container);
 
         return $current_controller->$action_to_execute($params);

@@ -2,6 +2,7 @@
 
 namespace Mpwarfw\Component\Routing;
 use Mpwarfw\Component\Request\Request;
+use Mpwarfw\Component\Routing\Exception\RouteNotFoundException;
 
 class Router
 {
@@ -26,6 +27,15 @@ class Router
     public function retrieveRoute(Request $request)
     {
         $path = $request->getPath();
+        if(!isset($this->routes[$path]))
+        {
+            throw new RouteNotFoundException('Route not found');
+        }
         return $this->routes[$path];
+    }
+
+    public function retrieveParams(Request $request)
+    {
+        return implode(",",$request->getParams());
     }
 }
