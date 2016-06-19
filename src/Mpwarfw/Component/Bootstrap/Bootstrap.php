@@ -28,8 +28,9 @@ class Bootstrap
         $route                     = $router->retrieveRoute($request);
         $controller_to_instantiate = $route->getController();
         $action_to_execute         = $route->getAction();
+        $params                    = implode(",",$request->getParams());
         $current_controller = new $controller_to_instantiate($this->container);
 
-        return $current_controller->$action_to_execute();
+        return $current_controller->$action_to_execute($params);
     }
 }

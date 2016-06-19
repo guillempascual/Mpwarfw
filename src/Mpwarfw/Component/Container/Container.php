@@ -59,20 +59,20 @@ class Container
         }
     }
 
-    public function getService($a_name_of_the_service)
+    public function getService($service_name)
     {
-        if (!array_key_exists($a_name_of_the_service, $this->container))
+        if (!array_key_exists($service_name, $this->container))
         {
-            throw new ServiceNotFoundException('Service not found: ' . $a_name_of_the_service);
+            throw new ServiceNotFoundException('Service not found: ' . $service_name);
         }
-        $this->service_store[ $a_name_of_the_service ] = $this->createService($this->container[ $a_name_of_the_service ]
+        $this->service_store[ $service_name ] = $this->createService($this->container[ $service_name ]
         );
-        if(!$this->service_settings[$a_name_of_the_service]['public'])
+        if(!$this->service_settings[$service_name]['public'])
         {
             throw new ServiceNotOpenToPublicException('Service not open to public access.');
         }
 
-        return $this->service_store[ $a_name_of_the_service ];
+        return $this->service_store[ $service_name ];
     }
 
     private function createService($service_schema)

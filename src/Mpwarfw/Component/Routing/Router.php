@@ -2,14 +2,12 @@
 
 namespace Mpwarfw\Component\Routing;
 use Mpwarfw\Component\Request\Request;
-use Mpwarfw\Component\Routing\Route;
-use Symfony\Component\Yaml\Parser;
 
 class Router
 {
     private $routes;
 
-    public function __construct(Parser $parser, $pathToRoutesDefinitionFile)
+    public function __construct($parser, $pathToRoutesDefinitionFile)
     {
         $defined_routes = $parser->parse(file_get_contents($pathToRoutesDefinitionFile));
 
@@ -27,9 +25,7 @@ class Router
 
     public function retrieveRoute(Request $request)
     {
-        $route_parts = explode('/',$request->server['REQUEST_URI']);
-        $path = $route_parts[5];
-
+        $path = $request->getPath();
         return $this->routes[$path];
     }
 }

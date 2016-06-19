@@ -7,6 +7,7 @@ class Route
     private $path;
     private $controller;
     private $action;
+    private $params;
 
     public function __construct($path,$controller,$action)
     {
@@ -61,5 +62,21 @@ class Route
     public function setPath($path)
     {
         $this->path = $path;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    /**
+     * @param mixed $params
+     */
+    public function setParams($params)
+    {
+        $this->params = $params;
     }
 }

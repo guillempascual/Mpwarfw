@@ -31,4 +31,27 @@ class Request
     {
         $this->params = $params;
     }
+
+    public function getPath()
+    {
+        $url_segments = explode("/", parse_url($this->server['PATH_INFO'],PHP_URL_PATH));
+
+        if(count($url_segments) > 0){
+            return $url_segments[ 1 ];
+        }
+        return 'index';
+    }
+
+    public function getParams()
+    {
+        $url_segments = explode("/", parse_url($this->server['PATH_INFO'],PHP_URL_PATH));
+
+        $params = [];
+        if(count($url_segments) > 2){
+            for ($param_index = 2; $param_index < count($url_segments); $param_index++){
+                $params[] = $url_segments[ $param_index ];
+            }
+        }
+        return $params;
+    }
 }
