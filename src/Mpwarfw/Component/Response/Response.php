@@ -4,6 +4,6 @@ namespace Mpwarfw\Component\Response;
 
 interface Response
 {
-    public function setResponse($result);
+    public function setContent($html);
     public function send();
 }

@@ -10,7 +10,7 @@ class ResponseJSON implements Response
     {
     }
 
-    public function setResponse($result)
+    public function setContent($result)
     {
         $this->response = json_encode($result);
     }
