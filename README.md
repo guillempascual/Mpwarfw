@@ -8,7 +8,7 @@ There is a proof of concept app using this framework [Mpwarapp](https://github.c
 
 Installation
 -------------
-**Mpwarfw** might be installed via composer, so add to your composer.json the following code.
+**Mpwarfw** might be installed via composer.
 This is how your *composer.json* might look like:
 
 ```json
@@ -86,42 +86,24 @@ Each application using this framework should have the following directory struct
 ```
 ├─ app/
 │   └─ confs/
-│         ├─ general.yml
-│         ├─ routing.yml
-│         ├─ services.yml (optional)
-│         ├─ services_prod.yml (optional)
-│         └─ services_dev.yml (optional)
+│   │    ├─ router.yml
+│   │    ├─ services.yml
+│   │    └─ services_dev.yml
+│   └─ i18n/
+│         ├─ es.yml
+│         ├─ fr.yml
 └─ public/
        └─ index.php (front controller)
        └─ index_dev.php (front controller for developers)
 ```
 
 ##Routing
+The *retrieveRoute* method in the *Router* class finds out what the controller and action are regardless of its position in the URL. This way the system doen't depend so heavely on how the user sets up her *Virtual Hosts*.
 
-**Default Routing Service**
-```yml
-router:
-  class: \Night\Component\Routing\Routing
-  arguments:
-    - @yaml-parser
-```
+This is so because it relies on the information in $_SERVER['PATH_INFO'] for parsing the route.
+
 ###routes.json format
 ```yml
-routeWithoutArguments:
-  route: /myroute
-  path:
-    classname: MyRouteWithoutArgumentsController
-    callablemethod: myRouteAction
-routeWithArguments:
-  route: /myroute/{arg1}/{arg2}
-  path:
-    classname: MyRouteWithArgumentsController
-    callablemethod: myRouteAction
-notfound:
-  route:
-  path:
-    classname: NotFoundController
-    callablemethod: notFoundAction
 - {path: /route-a, controller: controllerA, action: actionWithNoParams}
 - {path: /route-b/1/2, controller: controllerB, action: actionWithParams}
 ```
