@@ -198,4 +198,10 @@ ResponseHTTP:
 ResponseJSON:
     class: Mpwarfw\Component\Response\ResponseJSON
     public: true
+    
+Translator:
+  class: Mpwarfw\Component\i18n\Translator
+  arguments:
+      - "@yml_parser"
+  public: true
 ```
