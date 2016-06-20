@@ -15,7 +15,6 @@ class TwigTemplate implements Template
     }
 
     public function render($template_to_render, $params = [])
-
     {
         return $this->twig_environment->render($template_to_render, $params);
     }
