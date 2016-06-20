@@ -3,12 +3,13 @@
 namespace Mpwarfw\Component\Routing;
 use Mpwarfw\Component\Request\Request;
 use Mpwarfw\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Yaml\Parser;
 
 class Router
 {
     private $routes;
 
-    public function __construct($parser, $pathToRoutesDefinitionFile)
+    public function __construct(Parser $parser, $pathToRoutesDefinitionFile)
     {
         $defined_routes = $parser->parse(file_get_contents($pathToRoutesDefinitionFile));
 

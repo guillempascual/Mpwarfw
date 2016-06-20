@@ -63,7 +63,7 @@ class Customer extends ContainerController
         return $response;
     }
 ```
- -  It can manage two different templating engines, **Twig** and **Smarty**.
+ -  It can handle two different templating engines, **Twig** and **Smarty**.
 ```php
 $twigTemplate = $this->container->getService('TwigTemplate');
 $smartyTemplate = $this->container->getService('SmartyTemplate');
@@ -71,11 +71,7 @@ $smartyTemplate = $this->container->getService('SmartyTemplate');
  - It supports **prod** and **dev** environments.
  - A **Translator** service
 ```php
-$translator = $this->container->getService('translator');
-```
- - The controller in your app can have access to the **Request** object that contains all information relative to the globals  \$_GET, \$_POST. \$_SERVER, \$_SESSION, \$_COOKIE and to the Route information. To gain access to it is enough to add to your controller method the param *Request $request*
-```php
-public function myControllerAction(Request $request) {
+$translator = $this->container->getService('Translator');
 ```
  - It provides two type of responses, **ResponseHTTP** and **ResponseJSON**
  - The **PDORepository** is a simpple interface to access your database.
@@ -221,5 +217,3 @@ ResponseJSON:
     class: Mpwarfw\Component\Response\ResponseJSON
     public: true
 ```
-
-

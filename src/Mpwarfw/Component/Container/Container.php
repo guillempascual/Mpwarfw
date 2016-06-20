@@ -11,11 +11,7 @@ class Container
     private $service_store;
     private $service_settings;
 
-    public function __construct(
-        Parser $yml_parser,
-        $path_to_services_config_file,
-        $current_environment = 'DEV'
-    )
+    public function __construct( Parser $yml_parser, $path_to_services_config_file, $current_environment = 'DEV')
     {
         $this->container     = [];
         $this->service_store = [];
@@ -37,6 +33,7 @@ class Container
                 }
             }
         }
+
         if($current_environment === 'DEV')
         {
             $development_service_definitions = $yml_parser->parse(file_get_contents($path_to_services_config_file . '/services_dev.yml'));
